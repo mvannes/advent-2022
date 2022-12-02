@@ -2,11 +2,33 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 )
+
+type Result string
+
+const (
+	Win  Result = "win"
+	Draw        = "draw"
+	Lose        = "lose"
+)
+
+func (r Result) score() int {
+	switch r {
+	case Win:
+		return 6
+	case Draw:
+		return 3
+	case Lose:
+		return 0
+	default:
+		return -1
+	}
+}
 
 type Shape string
 
@@ -16,17 +38,27 @@ const (
 	Scissors       = "Scissors"
 )
 
-func (s Shape) scoreAgainst(opponent Shape) int {
+func (s Shape) match(opponent Shape) Result {
 	return shapeResultMap[s][opponent]
 }
+
 func (s Shape) selfScore() int {
 	return chosenShapeScoreMap[s]
 }
 
-var shapeResultMap = map[Shape]map[Shape]int{
-	Rock:     {Rock: 3, Paper: 0, Scissors: 6},
-	Paper:    {Rock: 6, Paper: 3, Scissors: 0},
-	Scissors: {Rock: 0, Paper: 6, Scissors: 3},
+func (s Shape) findOpponentForResult(r Result) (Shape, error) {
+	for o, res := range shapeResultMap[s] {
+		if res == r {
+			return o, nil
+		}
+	}
+	return "", errors.New("Invalid result for this shape.")
+}
+
+var shapeResultMap = map[Shape]map[Shape]Result{
+	Rock:     {Rock: Draw, Paper: Lose, Scissors: Win},
+	Paper:    {Rock: Win, Paper: Draw, Scissors: Lose},
+	Scissors: {Rock: Lose, Paper: Win, Scissors: Draw},
 }
 
 var chosenShapeScoreMap = map[Shape]int{
@@ -34,6 +66,7 @@ var chosenShapeScoreMap = map[Shape]int{
 	Paper:    2,
 	Scissors: 3,
 }
+
 var tokenToShapeMap = map[string]Shape{
 	"A": Rock,
 	"B": Paper,
@@ -43,22 +76,35 @@ var tokenToShapeMap = map[string]Shape{
 	"Z": Scissors,
 }
 
+var tokenToResultMap = map[string]Result{
+	"X": Win,
+	"Y": Draw,
+	"Z": Lose,
+}
+
 func main() {
 	f, err := os.Open("input")
 	if nil != err {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 
+	var partOneTotal int
 	var totalScore int
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		line := s.Text()
 		actions := strings.Split(line, " ")
 		opponent := tokenToShapeMap[actions[0]]
-		me := tokenToShapeMap[actions[1]]
-
-		score := me.selfScore() + me.scoreAgainst(opponent)
+		partOneMe := tokenToShapeMap[actions[1]]
+		expectedResult := tokenToResultMap[actions[1]]
+		me, err := opponent.findOpponentForResult(expectedResult)
+		if nil != err {
+			log.Fatal(err.Error())
+		}
+		score := me.selfScore() + me.match(opponent).score()
 		totalScore += score
+		partOneTotal += (partOneMe.selfScore() + partOneMe.match(opponent).score())
 	}
+	fmt.Println(partOneTotal)
 	fmt.Println(totalScore)
 }
