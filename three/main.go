@@ -20,19 +20,28 @@ func main() {
 	}
 	var prioSum int
 	s := bufio.NewScanner(f)
+	var currentGroup []string
+	var counter int
 	for s.Scan() {
 		line := s.Text()
-		totalItems := len(line)
-		halfWay := totalItems / 2
-		compartmentOne := line[0:halfWay]
-		compartmentTwo := line[halfWay:]
+		counter++
+		currentGroup = append(currentGroup, line)
+		if counter < 3 {
+			continue
+		}
+
+		compartmentOne := currentGroup[0]
+		compartmentTwo := currentGroup[1]
+		compartmentThree := currentGroup[2]
 
 		for _, c := range compartmentOne {
-			if strings.ContainsRune(compartmentTwo, c) {
+			if strings.ContainsRune(compartmentTwo, c) && strings.ContainsRune(compartmentThree, c) {
 				prioSum += runeToPrio(c)
 				break
 			}
 		}
+		counter = 0
+		currentGroup = []string{}
 	}
 	fmt.Println(prioSum)
 }
