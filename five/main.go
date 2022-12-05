@@ -26,10 +26,12 @@ func (s *Stack) put(crate string) {
 }
 
 func (s *Stack) popMultiple(takeAmount int) []string {
-	poppedElements := s.crates[len(s.crates)-1-takeAmount : len(s.crates)]
-	s.crates = s.crates[:len(s.crates)-1-takeAmount]
+	poppedElements := s.crates[len(s.crates)-takeAmount:]
+	s.crates = s.crates[:len(s.crates)-takeAmount]
 	return poppedElements
 }
+
+const maxGrabSize = 3
 
 func main() {
 	//[N]             [R]             [C]
@@ -71,10 +73,31 @@ func main() {
 		endStackIndex--
 		startStack := &stacks[startStackIndex]
 		endStack := &stacks[endStackIndex]
-		for i := 0; i < amountToMove; i++ {
-			inMoveElement := startStack.pop()
-			endStack.put(inMoveElement)
+
+		inMove := startStack.popMultiple(amountToMove)
+		for _, i := range inMove {
+			endStack.put(i)
 		}
+
+		// Stupid misread part where I thought that the max crate carrying was 3.
+		//fmt.Println("----")
+		//fmt.Println(amountToMove)
+		//moves := []int{}
+		//for i := maxGrabSize; i > 0; i-- {
+		//	for j := 0; j < amountToMove/i; j++ {
+		//		moves = append(moves, i)
+		//	}
+		//	amountToMove = amountToMove % i
+		//}
+		//fmt.Println(moves)
+		//for _, m := range moves {
+		//	fmt.Println(startStack)
+		//	inMoveElements := startStack.popMultiple(m)
+		//	fmt.Println(inMoveElements)
+		//	for _, e := range inMoveElements {
+		//		endStack.put(e)
+		//	}
+		//}
 	}
 	for _, s := range stacks {
 		fmt.Print(s.peek())
