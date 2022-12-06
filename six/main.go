@@ -16,20 +16,21 @@ func main() {
 	scan := bufio.NewScanner(f)
 	for scan.Scan() {
 		line := scan.Text()
-		res := findSignal(line)
-		fmt.Println(res)
+		resOne := findSignal(line, 4)
+		fmt.Println(resOne)
+		resTwo := findSignal(line, 14)
+		fmt.Println(resTwo)
 	}
 }
 
-func findSignal(s string) int {
-	for i := 4; i < len(s); i++ {
-		sub := s[i-4 : i]
+func findSignal(s string, amountOfChars int) int {
+	for i := amountOfChars; i < len(s); i++ {
+		sub := s[i-amountOfChars : i]
 		set := map[rune]bool{}
 		for _, s := range sub {
 			set[s] = true
 		}
-		fmt.Println(set)
-		if len(set) == 4 {
+		if len(set) == amountOfChars {
 			return i
 		}
 	}
