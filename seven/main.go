@@ -116,11 +116,31 @@ func main() {
 		}
 	}
 
+	totalSize := 70000000
+	spaceNeeded := 30000000
+
+	usedSize := mainDir.size(true)
+	freeSize := totalSize - usedSize
+
+	cleanUpSize := spaceNeeded - freeSize
+	fmt.Println("used:", usedSize, "free", freeSize, "toClean:", cleanUpSize)
+
 	var sumSizes int
+	var smallestPossibleCleanDir *Dir
 	for _, d := range mainDir.flattenedSubDirs() {
-		if dSize := d.size(true); dSize <= 100000 {
+		dSize := d.size(true)
+		if dSize <= 100000 {
 			sumSizes += dSize
 		}
+		if dSize >= cleanUpSize {
+			if smallestPossibleCleanDir == nil || smallestPossibleCleanDir.size(true) > dSize {
+				smallestPossibleCleanDir = d
+			}
+		}
 	}
+
+	fmt.Println(smallestPossibleCleanDir.size(true))
+
 	fmt.Println(sumSizes)
+
 }
