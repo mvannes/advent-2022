@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Tree struct {
@@ -17,48 +18,32 @@ type Tree struct {
 	down  *Tree
 }
 
-func (t Tree) isVisible() bool {
-	left := t.left
-	for {
-		if left == nil {
-			return true
-		}
-		if left.size >= t.size {
-			break
-		}
-		left = left.left
+func treeByDirection(t *Tree, direction string) *Tree {
+	switch direction {
+	case "left":
+		return t.left
+	case "right":
+		return t.right
+	case "up":
+		return t.up
+	case "down":
+		return t.down
 	}
-	right := t.right
-	for {
-		if right == nil {
-			return true
-		}
-		if right.size >= t.size {
-			break
-		}
-		right = right.right
-	}
+	return nil
+}
 
-	up := t.up
-	for {
-		if up == nil {
-			return true
+func (t *Tree) isVisible() bool {
+	for _, direction := range []string{"up", "down", "left", "right"} {
+		sideTree := treeByDirection(t, direction)
+		for {
+			if sideTree == nil {
+				return true
+			}
+			if sideTree.size >= t.size {
+				break
+			}
+			sideTree = treeByDirection(sideTree, direction)
 		}
-		if up.size >= t.size {
-			break
-		}
-		up = up.up
-	}
-
-	down := t.down
-	for {
-		if down == nil {
-			return true
-		}
-		if down.size >= t.size {
-			break
-		}
-		down = down.down
 	}
 	return false
 }
@@ -114,13 +99,31 @@ func main() {
 		lineCount++
 	}
 
-	var visibleTrees int
+	var wg sync.WaitGroup
+	visibleTreeChan := make(chan int)
+
 	for _, row := range grid {
-		for _, tree := range row {
-			if tree.isVisible() {
-				visibleTrees++
+		wg.Add(1)
+		go func(c chan int, trees []*Tree) {
+			defer wg.Done()
+			for _, tree := range trees {
+				if tree.isVisible() {
+					c <- 1
+				}
 			}
-		}
+
+		}(visibleTreeChan, row)
 	}
+	go func() {
+		wg.Wait()
+		close(visibleTreeChan)
+	}()
+
+	var visibleTrees int
+
+	for _ = range visibleTreeChan {
+		visibleTrees++
+	}
+
 	fmt.Println(visibleTrees)
 }
