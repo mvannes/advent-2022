@@ -48,6 +48,35 @@ func (t *Tree) isVisible() bool {
 	return false
 }
 
+func (t *Tree) calculateScenicScore() int {
+	var scores []int
+	for _, direction := range []string{"up", "down", "left", "right"} {
+		var directionalScore int
+		sideTree := treeByDirection(t, direction)
+		for {
+			if sideTree == nil {
+				break
+			}
+			directionalScore++
+			if sideTree.size >= t.size {
+				break
+			}
+			sideTree = treeByDirection(sideTree, direction)
+		}
+		scores = append(scores, directionalScore)
+	}
+	score := scores[0]
+	for _, ds := range scores[1:] {
+		score = score * ds
+	}
+	return score
+}
+
+type TreeResult struct {
+	visible     bool
+	scenicScore int
+}
+
 func main() {
 	f, err := os.Open("input")
 	if nil != err {
@@ -100,30 +129,36 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
-	visibleTreeChan := make(chan int)
-
+	treeResultChan := make(chan TreeResult)
 	for _, row := range grid {
 		wg.Add(1)
-		go func(c chan int, trees []*Tree) {
+		go func(c chan TreeResult, trees []*Tree) {
 			defer wg.Done()
 			for _, tree := range trees {
-				if tree.isVisible() {
-					c <- 1
+				c <- TreeResult{
+					visible:     tree.isVisible(),
+					scenicScore: tree.calculateScenicScore(),
 				}
 			}
 
-		}(visibleTreeChan, row)
+		}(treeResultChan, row)
 	}
+
 	go func() {
 		wg.Wait()
-		close(visibleTreeChan)
+		close(treeResultChan)
 	}()
 
 	var visibleTrees int
-
-	for _ = range visibleTreeChan {
-		visibleTrees++
+	var mostScenicTree int
+	for t := range treeResultChan {
+		if t.visible {
+			visibleTrees++
+		}
+		if t.scenicScore > mostScenicTree {
+			mostScenicTree = t.scenicScore
+		}
 	}
-
 	fmt.Println(visibleTrees)
+	fmt.Println(mostScenicTree)
 }
