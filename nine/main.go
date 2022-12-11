@@ -10,7 +10,7 @@ import (
 )
 
 const startingCoordinates = 0
-const amountOfRopeParts = 2
+const amountOfRopeParts = 10
 
 type Coordinates struct {
 	X, Y int
@@ -39,6 +39,8 @@ func (r *RopePart) Move(direction string) {
 		break
 	case "R":
 		c.X++
+		break
+	case "Stay":
 		break
 	}
 	r.MoveToCoordinates(c)
@@ -113,6 +115,7 @@ func main() {
 		if i != 0 {
 			part.Next = ropeParts[i-1]
 		}
+		part.Move("Stay")
 		ropeParts = append(ropeParts, part)
 	}
 
