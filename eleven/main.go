@@ -124,15 +124,17 @@ func main() {
 		m.Thrower = t
 		monkeys = append(monkeys, m)
 	}
+	commonDivisor := 1
+	for _, m := range monkeys {
+		commonDivisor *= m.Thrower.Divisor
+	}
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 10000; i++ {
 		for _, m := range monkeys {
 			for m.hasItems() {
 				worryLevel := m.popItem()
-
 				worryLevel = m.worry(worryLevel)
-				worryLevel = worryLevel / 3
-
+				worryLevel = worryLevel % commonDivisor
 				if worryLevel%m.Thrower.Divisor == 0 {
 					monkeys[m.Thrower.TargetIfTrue].receive(worryLevel)
 				} else {
