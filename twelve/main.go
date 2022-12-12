@@ -81,7 +81,7 @@ func main() {
 		}
 		lineCount++
 	}
-	calculateTraveled(nodeSlice, "E")
+	calculateTraveled(nodeSlice, "S")
 }
 
 type PrioNode struct {
@@ -159,7 +159,6 @@ func calculateTraveled(nodes []*Node, characterToFind string) {
 	for _, n := range nodes {
 		if n.Char == "E" {
 			fmt.Println(dists[n.id])
-			fmt.Println(n.id)
 		}
 	}
 	fmt.Println("done!")
