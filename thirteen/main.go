@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 )
 
 type Item struct {
 	Type         string
 	intValue     int
 	sliceOfItems []Item
+	DividerMark  int
 }
 
 func (i Item) hasIndex(index int) bool {
@@ -27,6 +29,7 @@ func main() {
 	s := bufio.NewScanner(f)
 	var set [2]Item
 	var sets [][2]Item
+	var items []Item
 	var counter int
 	for s.Scan() {
 		line := s.Bytes()
@@ -42,18 +45,53 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		set[counter] = createItem(content)
+		items = append(items, set[counter])
 		counter++
 	}
 
 	sum := 0
 	for i, s := range sets {
 		correct := compareItems(s[0], s[1])
-		fmt.Println(i)
 		if correct == 1 {
 			sum += i + 1
 		}
-		fmt.Println(s)
 	}
+	dividerOne := Item{
+		Type:        "ItemSlice",
+		intValue:    0,
+		DividerMark: 1,
+		sliceOfItems: []Item{
+			Item{
+				Type:     "Int",
+				intValue: 2,
+			},
+		},
+	}
+	dividerTwo :=
+		Item{
+			Type:        "ItemSlice",
+			intValue:    0,
+			DividerMark: 2,
+			sliceOfItems: []Item{
+				Item{
+					Type:     "Int",
+					intValue: 6,
+				},
+			},
+		}
+
+	items = append(items, dividerOne, dividerTwo)
+	sort.Slice(items, func(i, j int) bool {
+		return compareItems(items[i], items[j]) == 1
+	})
+
+	decoderKey := 1
+	for i, item := range items {
+		if item.DividerMark != 0 {
+			decoderKey *= (i + 1)
+		}
+	}
+	fmt.Println(decoderKey)
 	fmt.Println(sum)
 }
 
