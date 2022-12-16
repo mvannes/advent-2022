@@ -63,7 +63,8 @@ func main() {
 			yMax = y
 		}
 	}
-
+	yMax += 2
+	fmt.Println(yMax)
 	sandCount := 0
 	// Await overflow.
 	overflow := false
@@ -73,8 +74,16 @@ func main() {
 		y := 0
 		sandCount++
 		for {
-			if y > yMax {
+			if grid.isCoordinateTaken(500, 0) {
+				fmt.Println("found")
 				overflow = true
+				break
+			}
+			if y == yMax-1 {
+				grid.addCoordinate(Coordinates{
+					X: x,
+					Y: y,
+				}, "SAND")
 				break
 			}
 			if !grid.isCoordinateTaken(x, y+1) {
