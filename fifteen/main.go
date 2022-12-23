@@ -52,6 +52,17 @@ func (s Sensor) RangeForRow(y int) Range {
 	}
 }
 
+/*
+ * Radius of manhattan distanced nodes, map of Y with range on X.
+ */
+func (s Sensor) Radius() map[int]Range {
+	result := map[int]Range{}
+	for y := s.Y - s.Manhattan(); y <= s.Y+s.Manhattan(); y++ {
+		result[y] = s.RangeForRow(y)
+	}
+	return result
+}
+
 func abs(n int) int {
 	if n > 0 {
 		return n
@@ -85,38 +96,34 @@ func main() {
 		})
 	}
 	inRangeCount := 0
-	y := 2000000
-
-	sX := math.MaxInt
-	mX := math.MinInt
 	for _, s := range sensors {
-		if sX > s.X-s.Manhattan() {
-			sX = s.X - s.Manhattan()
-		}
-		if mX < s.X+s.Manhattan() {
-			mX = s.X + s.Manhattan()
-		}
-	}
-
-	for x := sX; x <= mX; x++ {
-		isBeacon := false
-		for _, s := range sensors {
-			if s.ClosestBeacon.X == x && s.ClosestBeacon.Y == y {
-				isBeacon = true
-				break
+		for y, r := range s.Radius() {
+			foundMin := false
+			foundMax := false
+			for _, s2 := range sensors {
+				if s2.IsPointInRange(r.minX-1, y) {
+					foundMin = true
+				}
+				if s2.IsPointInRange(r.maxX+1, y) {
+					foundMax = true
+				}
 			}
-		}
-		if isBeacon {
-			continue
-		}
-		for _, s := range sensors {
-			if s.IsPointInRange(x, y) {
-				inRangeCount++
-				break
+
+			if isCoordInRange(r.maxX+1, y) && !foundMax {
+				fmt.Println("foundmax")
+				fmt.Println(((r.maxX + 1) * 4000000) + y)
+			}
+			if isCoordInRange(r.minX-1, y) && !foundMin {
+				fmt.Println("foundmin")
+				fmt.Println(((r.minX - 1) * 4000000) + y)
 			}
 		}
 	}
 	fmt.Println(inRangeCount)
+}
+
+func isCoordInRange(x, y int) bool {
+	return x >= 0 && x <= 4000000 && y >= 0 && y <= 4000000
 }
 
 func drawBeacon(smallestX, largestX, smallestY, largestY int, sensor Sensor) {
